@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AT Protocol: Explained Simply</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .component-box {
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .data-packet {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            z-index: 10;
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+            box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.7);
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px 2px var(--glow-color); }
+            50% { box-shadow: 0 0 20px 8px var(--glow-color); }
+        }
+
+        .highlight-glow {
+            animation: glow 1.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-6xl">
+
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-blue-600">The AT Protocol, Made Simple</h1>
+            <p class="mt-4 text-lg text-gray-600">Imagine your social media data fits in a backpack you can take anywhere.</p>
+        </header>
+
+        <main class="space-y-16">
+
+            <!-- Introduction -->
+            <section class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold mb-4 border-b pb-2">The Big Idea</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    On most social media today, the company owns your account, your posts, and your list of friends. If you leave, you lose everything.
+                </p>
+                <p class="mt-4 text-gray-700 leading-relaxed">
+                    The <strong>AT Protocol</strong> changes this. It gives you ownership of your identity and data. It separates your data from the apps you use, giving you freedom and control. Think of it like email: you can use Gmail, Outlook, or Apple Mail to read your messages, and you can switch between them anytime because your email address and messages are your own.
+                </p>
+            </section>
+
+            <!-- Interactive Playground -->
+            <section id="playground">
+                 <h2 class="text-3xl font-bold mb-8 text-center">Interactive Playground</h2>
+                 
+                 <!-- Controls -->
+                 <div class="bg-white p-4 rounded-lg shadow-md mb-8 flex flex-wrap justify-center gap-3">
+                     <button id="btnPost" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">1. Alice makes a post</button>
+                     <button id="btnCrawl" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">2. Network indexes the post</button>
+                     <button id="btnFeed" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">3. Bob checks his timeline</button>
+                     <button id="btnReset" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">Reset</button>
+                 </div>
+                 
+                 <div id="log" class="text-center mb-4 h-6 text-gray-600 font-medium transition-opacity duration-300"></div>
+
+                 <!-- Diagram -->
+                 <div id="diagram" class="relative bg-gray-200 p-6 rounded-lg shadow-inner min-h-[500px] overflow-hidden">
+                    <!-- Lines connecting components -->
+                    <svg class="absolute top-0 left-0 w-full h-full" style="pointer-events: none;">
+                        <!-- Clients to PDSs -->
+                        <line x1="10%" y1="20%" x2="30%" y2="20%" stroke="#a78bfa" stroke-width="2" stroke-dasharray="5,5"/>
+                        <line x1="10%" y1="80%" x2="30%" y2="80%" stroke="#a78bfa" stroke-width="2" stroke-dasharray="5,5"/>
+                        <!-- PDSs to Relay -->
+                        <line x1="30%" y1="20%" x2="50%" y2="50%" stroke="#34d399" stroke-width="2" stroke-dasharray="5,5"/>
+                        <line x1="30%" y1="80%" x2="50%" y2="50%" stroke="#34d399" stroke-width="2" stroke-dasharray="5,5"/>
+                        <!-- Relay to AppView -->
+                        <line x1="50%" y1="50%" x2="70%" y2="50%" stroke="#fb923c" stroke-width="2" stroke-dasharray="5,5"/>
+                        <!-- AppView to Clients -->
+                         <line x1="70%" y1="50%" x2="90%" y2="80%" stroke="#f87171" stroke-width="2" stroke-dasharray="5,5" class="opacity-50"/>
+                         <line x1="90%" y1="80%" x2="70%" y2="50%" stroke="#f87171" stroke-width="2" stroke-dasharray="5,5" class="opacity-50"/>
+                    </svg>
+                     
+                    <!-- Column 1: Clients -->
+                    <div class="absolute top-1/2 -translate-y-1/2 left-[10%] -translate-x-1/2 space-y-48">
+                        <div id="alice" class="component-box bg-violet-200 border-2 border-violet-400 w-40">
+                            <h3 class="font-bold">Alice's App</h3>
+                            <p class="text-sm">(e.g. Bluesky)</p>
+                        </div>
+                         <div id="bob" class="component-box bg-violet-200 border-2 border-violet-400 w-40">
+                            <h3 class="font-bold">Bob's App</h3>
+                            <p class="text-sm">(A different client)</p>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: PDS -->
+                     <div class="absolute top-1/2 -translate-y-1/2 left-[30%] -translate-x-1/2 space-y-48">
+                        <div id="pds1" class="component-box bg-blue-200 border-2 border-blue-400 w-48">
+                            <h3 class="font-bold">Personal Data Server 1</h3>
+                            <p class="text-sm">"Alice's Data Locker"</p>
+                        </div>
+                         <div id="pds2" class="component-box bg-blue-200 border-2 border-blue-400 w-48">
+                            <h3 class="font-bold">Personal Data Server 2</h3>
+                            <p class="text-sm">"Bob's Data Locker"</p>
+                        </div>
+                    </div>
+                     
+                    <!-- Column 3: Relay -->
+                    <div class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2">
+                        <div id="relay" class="component-box bg-green-200 border-2 border-green-500 w-52">
+                            <h3 class="font-bold">Relay</h3>
+                            <p class="text-sm">"The Network Firehose"</p>
+                            <p class="text-xs mt-1">Gathers all public data</p>
+                        </div>
+                    </div>
+                     
+                    <!-- Column 4: AppView -->
+                    <div class="absolute top-1/2 -translate-y-1/2 left-[70%] -translate-x-1/2">
+                        <div id="appview" class="component-box bg-orange-200 border-2 border-orange-400 w-48">
+                           <h3 class="font-bold">AppView</h3>
+                           <p class="text-sm">"The Social Index"</p>
+                           <p class="text-xs mt-1">Organizes data for apps</p>
+                        </div>
+                    </div>
+
+                     <!-- Bob's client is represented twice for clarity of flow -->
+                     <div class="absolute top-[80%] -translate-y-1/2 left-[90%] -translate-x-1/2">
+                         <div id="bob-reading" class="component-box bg-violet-200 border-2 border-violet-400 w-40">
+                            <h3 class="font-bold">Bob's App</h3>
+                            <p class="text-sm">(Reading his timeline)</p>
+                        </div>
+                    </div>
+                 </div>
+            </section>
+            
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center mt-16 py-6 border-t">
+            <p class="text-gray-500">This is a simplified demonstration. Click the buttons above to see it in action!</p>
+        </footer>
+    </div>
+<script>
+    const diagram = document.getElementById('diagram');
+    const log = document.getElementById('log');
+
+    const btnPost = document.getElementById('btnPost');
+    const btnCrawl = document.getElementById('btnCrawl');
+    const btnFeed = document.getElementById('btnFeed');
+    const btnReset = document.getElementById('btnReset');
+
+    const alice = document.getElementById('alice');
+    const pds1 = document.getElementById('pds1');
+    const relay = document.getElementById('relay');
+    const appview = document.getElementById('appview');
+    const bob = document.getElementById('bob-reading'); // Use the second bob for reading flow
+    const pds2 = document.getElementById('pds2');
+
+    function resetState() {
+        log.textContent = 'Click a button to start the simulation.';
+        btnPost.disabled = false;
+        btnCrawl.disabled = true;
+        btnFeed.disabled = true;
+        
+        // Remove existing packets
+        const packets = document.querySelectorAll('.data-packet');
+        packets.forEach(p => p.remove());
+        
+        // Remove glows
+        const glowing = document.querySelectorAll('.highlight-glow');
+        glowing.forEach(el => el.classList.remove('highlight-glow'));
+    }
+    
+    function setLog(message) {
+        log.style.opacity = '0';
+        setTimeout(() => {
+            log.textContent = message;
+            log.style.opacity = '1';
+        }, 300);
+    }
+    
+    function highlight(element, color) {
+        element.style.setProperty('--glow-color', color);
+        element.classList.add('highlight-glow');
+        setTimeout(() => element.classList.remove('highlight-glow'), 1500);
+    }
+
+    function animatePacket(from, to, color, content = '', duration = 2000) {
+        return new Promise(resolve => {
+            const packet = document.createElement('div');
+            packet.className = 'data-packet';
+            packet.style.backgroundColor = color;
+            packet.innerHTML = content;
+            
+            const fromRect = from.getBoundingClientRect();
+            const toRect = to.getBoundingClientRect();
+            const diagramRect = diagram.getBoundingClientRect();
+
+            const startX = fromRect.left + fromRect.width / 2 - diagramRect.left;
+            const startY = fromRect.top + fromRect.height / 2 - diagramRect.top;
+            const endX = toRect.left + toRect.width / 2 - diagramRect.left;
+            const endY = toRect.top + toRect.height / 2 - diagramRect.top;
+            
+            packet.style.left = `${startX}px`;
+            packet.style.top = `${startY}px`;
+            
+            diagram.appendChild(packet);
+
+            packet.style.transition = `all ${duration / 1000}s ease-in-out`;
+            
+            // Trigger animation
+            requestAnimationFrame(() => {
+                 packet.style.opacity = '1';
+                 packet.style.transform = `translate(${endX - startX}px, ${endY - startY}px) scale(1)`;
+            });
+
+            setTimeout(() => {
+                packet.style.opacity = '0';
+                setTimeout(() => {
+                    packet.remove();
+                    resolve(packet);
+                }, 500);
+            }, duration);
+        });
+    }
+
+    btnPost.addEventListener('click', async () => {
+        setLog("Alice's app sends her post to her chosen data server (PDS).");
+        btnPost.disabled = true;
+        
+        highlight(alice, '#a78bfa');
+        await animatePacket(alice, pds1, '#4f46e5', 'P');
+        highlight(pds1, '#60a5fa');
+        
+        setLog("Her post is now stored securely in her 'data locker'.");
+        btnCrawl.disabled = false;
+    });
+
+    btnCrawl.addEventListener('click', async () => {
+        setLog("The Relay gathers the new post from Alice's PDS...");
+        btnCrawl.disabled = true;
+
+        highlight(pds1, '#60a5fa');
+        await animatePacket(pds1, relay, '#10b981', 'P', 1500);
+        highlight(relay, '#34d399');
+        
+        setLog("...and streams it to the AppView to be indexed.");
+        await animatePacket(relay, appview, '#f97316', 'P', 1500);
+        highlight(appview, '#fb923c');
+
+        setLog("The post is now organized and ready to be viewed in feeds.");
+        btnFeed.disabled = false;
+    });
+
+    btnFeed.addEventListener('click', async () => {
+        setLog("Bob's app asks the AppView for his timeline...");
+        btnFeed.disabled = true;
+        
+        highlight(bob, '#f87171');
+        await animatePacket(bob, appview, '#a855f7', '?', 1500);
+        highlight(appview, '#fb923c');
+        
+        setLog("The AppView sends the timeline, including Alice's post.");
+        await animatePacket(appview, bob, '#ef4444', 'P', 1500);
+        
+        setLog("Bob sees Alice's post, even though they use different apps and servers!");
+    });
+    
+    btnReset.addEventListener('click', resetState);
+    
+    // Initial state
+    document.addEventListener('DOMContentLoaded', resetState);
+
+</script>
+</body>
+</html>
+
