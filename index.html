@@ -45,13 +45,13 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-50 text-gray-800">
 
     <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-6xl">
 
         <!-- Header -->
         <header class="text-center mb-12">
-            <h1 class="text-4xl md:text-5xl font-bold text-blue-600">The AT Protocol, Made Simple</h1>
+            <h1 class="text-4xl md:text-5xl font-bold text-blue-500">The AT Protocol, Made Simple</h1>
             <p class="mt-4 text-lg text-gray-600">Imagine your social media data fits in a backpack you can take anywhere.</p>
         </header>
 
@@ -150,7 +150,29 @@
                     </div>
                  </div>
             </section>
-            
+
+            <!-- Interoperability Example -->
+            <section class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold mb-4 border-b pb-2">App Interoperability</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    The AT Protocol lets different apps share your content. Here's how a TikTok-style app could show your Bluesky videos.
+                </p>
+                <div class="mt-6 flex flex-col items-center gap-4">
+                    <div id="interopDiagram" class="relative bg-gray-200 p-6 rounded-lg shadow-inner w-full max-w-xl h-64">
+                        <div id="bluesky-profile" class="component-box bg-blue-100 border-2 border-blue-300 w-48 absolute top-1/2 left-1/4 -translate-y-1/2 -translate-x-1/2">
+                            <h3 class="font-bold">Your Bluesky</h3>
+                            <p class="text-sm">Video post</p>
+                        </div>
+                        <div id="tiktok-app" class="component-box bg-pink-100 border-2 border-pink-300 w-48 absolute top-1/2 left-3/4 -translate-y-1/2 -translate-x-1/2">
+                            <h3 class="font-bold">TikTok-style App</h3>
+                            <p class="text-sm">Plays Bluesky videos</p>
+                        </div>
+                    </div>
+                    <div id="interopLog" class="text-center text-gray-600 font-medium h-6 transition-opacity duration-300"></div>
+                    <button id="btnInterop" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">Show Example</button>
+                </div>
+            </section>
+
         </main>
 
         <!-- Footer -->
@@ -161,12 +183,15 @@
     </div>
 <script>
     const diagram = document.getElementById('diagram');
+    const interopDiagram = document.getElementById('interopDiagram');
     const log = document.getElementById('log');
+    const interopLog = document.getElementById('interopLog');
 
     const btnPost = document.getElementById('btnPost');
     const btnCrawl = document.getElementById('btnCrawl');
     const btnFeed = document.getElementById('btnFeed');
     const btnReset = document.getElementById('btnReset');
+    const btnInterop = document.getElementById('btnInterop');
 
     const alice = document.getElementById('alice');
     const pds1 = document.getElementById('pds1');
@@ -174,6 +199,8 @@
     const appview = document.getElementById('appview');
     const bob = document.getElementById('bob-reading'); // Use the second bob for reading flow
     const pds2 = document.getElementById('pds2');
+    const blueskyProfile = document.getElementById('bluesky-profile');
+    const tiktokApp = document.getElementById('tiktok-app');
 
     function resetState() {
         log.textContent = 'Click a button to start the simulation.';
@@ -197,6 +224,14 @@
             log.style.opacity = '1';
         }, 300);
     }
+
+    function setInteropLog(message) {
+        interopLog.style.opacity = '0';
+        setTimeout(() => {
+            interopLog.textContent = message;
+            interopLog.style.opacity = '1';
+        }, 300);
+    }
     
     function highlight(element, color) {
         element.style.setProperty('--glow-color', color);
@@ -204,33 +239,33 @@
         setTimeout(() => element.classList.remove('highlight-glow'), 1500);
     }
 
-    function animatePacket(from, to, color, content = '', duration = 2000) {
+    function animatePacket(from, to, color, content = '', duration = 2000, container = diagram) {
         return new Promise(resolve => {
             const packet = document.createElement('div');
             packet.className = 'data-packet';
             packet.style.backgroundColor = color;
             packet.innerHTML = content;
-            
+
             const fromRect = from.getBoundingClientRect();
             const toRect = to.getBoundingClientRect();
-            const diagramRect = diagram.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
 
-            const startX = fromRect.left + fromRect.width / 2 - diagramRect.left;
-            const startY = fromRect.top + fromRect.height / 2 - diagramRect.top;
-            const endX = toRect.left + toRect.width / 2 - diagramRect.left;
-            const endY = toRect.top + toRect.height / 2 - diagramRect.top;
-            
+            const startX = fromRect.left + fromRect.width / 2 - containerRect.left;
+            const startY = fromRect.top + fromRect.height / 2 - containerRect.top;
+            const endX = toRect.left + toRect.width / 2 - containerRect.left;
+            const endY = toRect.top + toRect.height / 2 - containerRect.top;
+
             packet.style.left = `${startX}px`;
             packet.style.top = `${startY}px`;
-            
-            diagram.appendChild(packet);
+
+            container.appendChild(packet);
 
             packet.style.transition = `all ${duration / 1000}s ease-in-out`;
-            
+
             // Trigger animation
             requestAnimationFrame(() => {
-                 packet.style.opacity = '1';
-                 packet.style.transform = `translate(${endX - startX}px, ${endY - startY}px) scale(1)`;
+                packet.style.opacity = '1';
+                packet.style.transform = `translate(${endX - startX}px, ${endY - startY}px) scale(1)`;
             });
 
             setTimeout(() => {
@@ -286,9 +321,19 @@
     });
     
     btnReset.addEventListener('click', resetState);
-    
+    btnInterop.addEventListener('click', async () => {
+        setInteropLog('A TikTok-style app requests your Bluesky video...');
+        highlight(blueskyProfile, '#3b82f6');
+        await animatePacket(blueskyProfile, tiktokApp, '#ec4899', '🎬', 1500, interopDiagram);
+        highlight(tiktokApp, '#ec4899');
+        setInteropLog('It plays in the other app thanks to the open protocol.');
+    });
+
     // Initial state
-    document.addEventListener('DOMContentLoaded', resetState);
+    document.addEventListener('DOMContentLoaded', () => {
+        resetState();
+        setInteropLog('Click the button to see it.');
+    });
 
 </script>
 </body>
